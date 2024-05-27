@@ -1,21 +1,32 @@
-// quotes.js
-const quotes = [
-  { quote: "The best way to predict the future is to invent it.", author: "Alan Kay" },
-  { quote: "Life is 10% what happens to us and 90% how we react to it.", author: "Charles R. Swindoll" },
-  { quote: "Your time is limited, so don’t waste it living someone else’s life.", author: "Steve Jobs" },
-  { quote: "You miss 100% of the shots you don’t take.", author: "Wayne Gretzky" },
-  { quote: "Success is not the key to happiness. Happiness is the key to success.", author: "Albert Schweitzer" },
-  // Add more quotes as needed
-];
+function csvToArray(str, delimiter = '\t') {
+  const headers = str.slice(0, str.indexOf('\n')).trim().split(delimiter);
+  const rows = str.slice(str.indexOf('\n') + 1).trim().split('\n');
 
-function generateQuote() {
-  const randomIndex = Math.floor(Math.random() * quotes.length);
-  const quoteElement = document.getElementById('quote');
-  const authorElement = document.getElementById('author');
-
-  quoteElement.textContent = `"${quotes[randomIndex].quote}"`;
-  authorElement.textContent = `- ${quotes[randomIndex].author}`;
+  return rows.map(row => {
+      const values = row.split(delimiter);
+      return headers.reduce((object, header, index) => {
+          object[header] = values[index];
+          return object;
+      }, {});
+  });
 }
 
-// Generate a quote when the page loads
+function fetchQuotes() {
+  return fetch('quotes.csv')
+      .then(response => response.text())
+      .then(data => csvToArray(data))
+      .catch(error => console.error('Error fetching the CSV file:', error));
+}
+
+function generateQuote() {
+  fetchQuotes().then(quotes => {
+      const randomIndex = Math.floor(Math.random() * quotes.length);
+      const quoteElement = document.getElementById('quote');
+      const authorElement = document.getElementById('author');
+
+      quoteElement.textContent = `"${quotes[randomIndex].quote}"`;
+      authorElement.textContent = `- ${quotes[randomIndex].author}`;
+  });
+}
+
 window.onload = generateQuote;
